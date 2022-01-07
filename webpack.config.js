@@ -34,7 +34,7 @@ module.exports = {
         use: ['ts-loader'], //обрабатывай с помощью ts-loader
       },
       {
-        test: /\.css$/,
+        test: /\.less$/,
         use: [
           'style-loader',
           {
@@ -47,6 +47,7 @@ module.exports = {
               },
             },
           },
+          'less-loader',
         ],
       },
     ],
