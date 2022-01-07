@@ -5,7 +5,7 @@ function HeaderComponent() {
   return (
     <header>
       <h1>HELLO Jen!!</h1>
-      <p>Привет? jjjjj!!</p>
+      <p>Привет dfadg</p>
     </header>
   );
 }

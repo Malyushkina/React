@@ -51,8 +51,8 @@ module.exports = {
   devtool: setupDevtool(), //конфигурации devtool в зависимости от режима (разработка или продакшн)
   plugins: IS_DEV
     ? [
-        new CleanWebpackPlugin(), // удаляет лишние чанки
         new HotModuleReplacementPlugin(), //нужен для работы webpack-hot-middleware
+        new CleanWebpackPlugin(), // удаляет лишние чанки
       ]
     : [],
 };
