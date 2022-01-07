@@ -33,6 +33,22 @@ module.exports = {
         test: /\.[tj]sx?$/, //регулярное выражение - все файлы с именем .tsx и .jsx
         use: ['ts-loader'], //обрабатывай с помощью ts-loader
       },
+      {
+        test: /\.css$/,
+        use: [
+          'style-loader',
+          {
+            loader: 'css-loader',
+            options: {
+              importLoaders: 1,
+              modules: {
+                mode: 'local',
+                localIdentName: '[name]__[local]--[hash:base64:5]',
+              },
+            },
+          },
+        ],
+      },
     ],
   },
   plugins: [
