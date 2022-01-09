@@ -145,3 +145,162 @@ interface interfaceFn1 {
 function neverFn(): never {
   throw new Error('my exception');
 }
+
+//generics - обобщенные типы. Они нужны для описания похожих, но отличающихся какими-то характеристиками типов.
+//<T> - это generic. Например, мы не знаем в данный момент, какого типа данные будут приходить, и вводим переменную для типа - generic
+// например, пусть раньше тип валюты приходил, как строка, а стал приходить, как число:
+
+type PaymentInfo = {
+  id: number;
+  amount: number;
+  currency: string;
+};
+
+// тогда для того, чтобы передать нужный тип:
+
+type PaymentInfo1<T> = {
+  id: number;
+  amount: number;
+  currency: T;
+};
+
+const paymentInfoStr: PaymentInfo1<string> = {
+  id: 1,
+  amount: 10000,
+  currency: 'rub',
+};
+
+const paymentInfoNum: PaymentInfo1<number> = {
+  id: 1,
+  amount: 10000,
+  currency: 2,
+};
+//встроенные generics
+
+//Array, Omit - выкидывает из интерфейса ключ:
+
+interface IExample<T> {
+  type: string;
+  value: T;
+  isEmpty: boolean;
+}
+const omittedObj: Omit<IExample<string>, 'isEmpty' | 'value'> = {
+  type: '',
+  //value:'ee' - ошибка, т.к Omit выбросил ключи isEmpty и value из интерфейса
+};
+
+//Pick - обратная Omit операция, забирает ключи из интерфейса (только те, которые мы перечислим)
+
+const pickedObj: Pick<IExample<number>, 'type' | 'isEmpty'> = {
+  type: 'ttt',
+  isEmpty: true,
+  //value:2 - ошибка, мы не сказали Pick взять этот ключ
+};
+
+//Partial - делает все ключи интерфейса необязательными. Следует быть очень осторожными,
+//т.к.внутри кода порождается много условий для обработки
+
+const partial: Partial<IExample<object>> = {
+  // объект пустой, т.к. мы сделали все ключи интерфейса необязательными, и TS не выдаёт ошибку
+};
+
+//Типизация классов
+
+class myClass {
+  public publicField: number = 123;
+  private privateField: string = '';
+  constructor(arg: number) {
+    this.publicField = arg;
+    this.privateField = arg + '2';
+  }
+  public publicMethod(): number {
+    return this.publicField;
+  }
+
+  private privateMethod(): string {
+    return this.privateField;
+  }
+
+  protected protectedMethod(): string {
+    return this.privateMethod() + '30';
+  }
+}
+//Абстрактный класс. От абстрактного класса можно только унаследоваться
+abstract class abstractClass {
+  public abstract abstractField: number;
+  public abstract abstractMettod(): number;
+}
+
+//as - позволяет делать приведение к типу
+
+const mistacke = []; //сюда можно запушить данные любого типа
+const mistacke1 = [] as Array<number>; //сюда можно запушить только числа
+
+//typeof - привести интерфейс или type alias к type alias константного значения
+
+const bigObj = {
+  a: {
+    d: 123,
+    e: 356,
+  },
+  b: '123',
+  c: true,
+};
+
+type TMyBigObj = typeof bigObj; // теперь мы имеем type alias такой же, как у объекта bigObj
+
+//чтобы сделать все значения type alias как readonly:
+
+const typedMyBigObj: Readonly<TMyBigObj> = bigObj; // теперь все значения typedMyBigObj - это readonly значения bigObj,
+// но только для первого уровня вложенности
+
+// keyof - используется для перебора ключей, аналог for(let N of objKeys){}
+// перебери все ключи из типа TMyBigObj и дай им тип (такой же как в TMyBigObj с этим ключом)
+type myReadonly = {
+  readonly [N in keyof TMyBigObj]: TMyBigObj[N]; //mapped types - типы, которые перебирают другие типы
+};
+const some: myReadonly = {
+  a: {
+    d: 8888,
+    e: 555,
+  },
+  b: 'adf',
+  c: false,
+};
+
+//или можно сделать тип myReadonly более универсальным с помощью джененрика:
+
+type myReadonlyGen<T> = { readonly [N in keyof T]: T[N] };
+
+// и вызвать этот тип:
+const some1: myReadonlyGen<TMyBigObj> = {
+  a: {
+    d: 8888,
+    e: 555,
+  },
+  b: 'adf',
+  c: false,
+};
+
+//попробуем переписать Partial
+
+type myPartial<T> = {
+  [N in keyof T]?: T[N]; //теперь все ключи интерфейса необязательны, имеют вид, например, a?:number
+};
+
+// перепишем Pick:
+
+type myPick<T, K extends keyof T> = {
+  // K - ключи, которые мы хотим вставить из типа Т
+  [N in K]: T[N];
+};
+
+// теперь напишем тип, который будет делать readonly на всю глубину вложенности объекта
+
+type myReadonlyDeep<T> = {
+  readonly [N in keyof T]: T[N] extends object ? myReadonlyDeep<T[N]> : T[N];
+};
+
+//type inference - вычисление аргумента джененрика
+
+type removeReadonly<T> = T extends myReadonlyDeep<infer E> ? E : T;//если тип Т является расширением myReadonlyDeep, верни нам его аргумент, если нет - верни Т
